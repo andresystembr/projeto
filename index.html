@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projeto Patas Seguras — Proteção Animal</title>
+<meta name="description" content="Ajude o Projeto Patas Seguras a proteger animais. Doe via Pix ou cartão.">
+<meta property="og:title" content="Projeto Patas Seguras — Doe e Salve Vidas">
+<meta property="og:description" content="Doe via Pix ou cartão e ajude a salvar vidas animais.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#2B5B59;--teal-dark:#1a3a38;--teal-light:#3a7a77;
+  --orange:#E58B3F;--orange-light:#F0A964;--orange-dark:#D47A2E;
+  --sage:#B8D4B0;--sage-light:#E6F0E2;--cream:#F8F6F1;
+  --white:#fff;--text:#1a1a1a;--text-light:#555;--text-muted:#888;
+  --radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--text);background:var(--cream);line-height:1.6}
+
+/* NAV */
+.nav{position:fixed;top:0;width:100%;background:rgba(43,91,89,0.97);backdrop-filter:blur(12px);z-index:100;padding:0 24px}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-weight:900;font-size:17px}
+.nav-links{display:flex;gap:24px;list-style:none}
+.nav-links a{color:rgba(255,255,255,0.75);text-decoration:none;font-weight:700;font-size:14px;transition:color .2s}
+.nav-links a:hover{color:var(--orange-light)}
+.nav-cta{background:var(--orange);color:#fff;padding:10px 22px;border-radius:10px;font-weight:800;font-size:14px;text-decoration:none;transition:all .2s}
+.nav-cta:hover{background:var(--orange-light);transform:translateY(-1px)}
+.mobile-menu{display:none;background:none;border:none;cursor:pointer;padding:8px}
+.mobile-menu span{display:block;width:24px;height:2px;background:#fff;margin:5px 0;border-radius:2px}
+
+/* BANNER */
+.banner{margin-top:64px;position:relative;width:100%;max-height:400px;overflow:hidden;background:var(--teal)}
+.banner img{width:100%;height:auto;display:block;object-fit:cover;max-height:400px}
+.banner-placeholder{height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:linear-gradient(135deg,var(--teal) 0%,var(--teal-light) 100%)}
+.banner-placeholder svg{opacity:0.3}
+.banner-placeholder p{color:rgba(255,255,255,0.4);font-weight:700;font-size:14px}
+
+/* MAIN LAYOUT */
+.main{max-width:1100px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1fr 420px;gap:40px;margin-top:-40px;position:relative;z-index:10}
+.main-content{padding-top:60px}
+
+/* INFO SECTION */
+.project-title{font-size:clamp(28px,4vw,38px);font-weight:900;color:var(--teal);line-height:1.15;margin-bottom:16px}
+.project-title span{color:var(--orange)}
+.project-desc{font-size:16px;color:var(--text-light);font-weight:600;line-height:1.65;margin-bottom:24px}
+.project-highlight{background:var(--sage-light);border-radius:12px;padding:16px 20px;margin-bottom:32px}
+.project-highlight p{font-size:15px;color:var(--teal);font-weight:700}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:36px}
+.stat-mini{background:var(--white);border-radius:12px;padding:20px;box-shadow:var(--shadow)}
+.stat-mini .num{font-size:28px;font-weight:900;color:var(--teal);line-height:1}
+.stat-mini .label{font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px}
+
+/* ABOUT CARDS */
+.about-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:36px}
+.about-card{background:var(--white);border-radius:12px;padding:20px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow)}
+.about-card .icon{flex-shrink:0;width:44px;height:44px;border-radius:10px;background:var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:20px}
+.about-card h4{font-weight:800;color:var(--teal);font-size:15px;margin-bottom:2px}
+.about-card p{font-size:13px;color:var(--text-light);font-weight:600}
+
+/* CHANNELS */
+.channels-section{margin-bottom:36px}
+.channels-section h3{font-weight:900;font-size:20px;color:var(--teal);margin-bottom:16px}
+.channel-row{display:flex;flex-direction:column;gap:10px}
+.channel{background:var(--white);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+.channel-badge{flex-shrink:0;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff}
+.channel h4{font-weight:800;color:var(--teal);font-size:14px}
+.channel p{font-size:12px;color:var(--text-muted);font-weight:600}
+
+/* DONATION CARD */
+.donate-card{position:sticky;top:84px;background:var(--white);border-radius:20px;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.04)}
+.donate-card h2{font-size:22px;font-weight:900;color:var(--teal);margin-bottom:6px}
+.donate-card .subtitle{font-size:14px;color:var(--text-light);font-weight:600;margin-bottom:24px}
+
+/* AMOUNT SELECTION */
+.amounts-label{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px}
+.amounts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.amount-btn{background:var(--cream);border:2px solid transparent;border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;font-weight:800;font-size:16px;color:var(--teal);font-family:inherit}
+.amount-btn:hover{border-color:var(--teal);background:var(--sage-light)}
+.amount-btn.active{background:var(--sage-light);border-color:var(--teal);color:var(--teal)}
+.amount-btn.active::after{content:' ✓';color:var(--teal)}
+.more-toggle{background:none;border:none;color:var(--teal);font-weight:700;font-size:14px;cursor:pointer;padding:8px 0;display:flex;align-items:center;gap:6px;font-family:inherit;margin-bottom:12px}
+.more-toggle:hover{color:var(--orange)}
+.extra-amounts{display:none;margin-bottom:12px}
+.extra-amounts.show{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.custom-input{width:100%;padding:14px 16px;border:2px solid #e0e0e0;border-radius:12px;font-size:15px;font-weight:700;color:var(--text);font-family:inherit;margin-bottom:20px;transition:border-color .2s}
+.custom-input:focus{outline:none;border-color:var(--teal)}
+.custom-input::placeholder{color:#bbb}
+
+/* PAYMENT METHODS */
+.payment-label{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px}
+.pay-tabs{display:flex;gap:8px;margin-bottom:20px}
+.pay-tab{flex:1;padding:12px;border-radius:10px;text-align:center;cursor:pointer;font-weight:800;font-size:14px;border:2px solid #e0e0e0;background:var(--white);color:var(--text-light);transition:all .2s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+.pay-tab:hover{border-color:var(--teal)}
+.pay-tab.active{border-color:var(--teal);background:var(--sage-light);color:var(--teal)}
+.pay-tab .tab-icon{font-size:18px}
+
+/* FORM */
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
+.form-group input{width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;font-weight:600;color:var(--text);font-family:inherit;transition:border-color .2s}
+.form-group input:focus{outline:none;border-color:var(--teal)}
+.form-group input::placeholder{color:#bbb}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* SELECTED AMOUNT DISPLAY */
+.selected-display{background:var(--cream);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.selected-display .label{font-size:14px;color:var(--text-light);font-weight:700}
+.selected-display .value{font-size:22px;font-weight:900;color:var(--teal)}
+
+/* PAY BUTTON */
+.pay-btn{width:100%;padding:16px;border:none;border-radius:12px;font-size:17px;font-weight:900;cursor:pointer;transition:all .2s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px}
+.pay-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.12)}
+.pay-btn-pix{background:var(--teal);color:#fff}
+.pay-btn-card{background:var(--orange);color:#fff;display:none}
+.pay-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* SECURE */
+.secure-line{display:flex;align-items:center;gap:8px;margin-top:16px;justify-content:center}
+.secure-line p{font-size:12px;color:var(--text-muted);font-weight:600}
+
+/* SOCIAL PROOF */
+.social-proof{margin-top:20px;text-align:center;padding-top:20px;border-top:1px solid #eee}
+.social-proof p{font-size:13px;color:var(--text-muted);font-weight:600}
+.social-proof a{color:var(--orange);text-decoration:none;font-weight:800}
+
+/* FOOTER */
+.footer{background:var(--teal-dark);padding:48px 24px 32px;text-align:center;margin-top:60px}
+.footer-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:12px}
+.footer-logo span{color:#fff;font-weight:900;font-size:18px}
+.footer p{color:rgba(255,255,255,0.4);font-size:13px;font-weight:600;margin-bottom:6px}
+.footer a{color:var(--orange-light);text-decoration:none}
+.footer-social{display:flex;justify-content:center;gap:12px;margin:16px 0}
+.footer-social a{background:rgba(255,255,255,0.08);width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:18px;transition:background .2s}
+.footer-social a:hover{background:var(--orange)}
+
+/* PDF */
+.pdf-card{background:var(--white);border-radius:16px;padding:24px;box-shadow:var(--shadow);margin-top:36px;display:flex;align-items:center;gap:16px}
+.pdf-icon{flex-shrink:0;width:52px;height:52px;border-radius:12px;background:var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:24px}
+.pdf-card h4{font-weight:800;color:var(--teal);font-size:15px;margin-bottom:2px}
+.pdf-card p{font-size:13px;color:var(--text-light);font-weight:600}
+.pdf-card a{color:var(--orange);font-weight:800;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:4px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .main{grid-template-columns:1fr;margin-top:0}
+  .donate-card{position:static;margin-top:20px}
+  .banner-placeholder{height:200px}
+}
+@media(max-width:768px){
+  .nav-links{display:none}
+  .mobile-menu{display:block}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .amounts-grid{grid-template-columns:repeat(2,1fr)}
+  .form-row{grid-template-columns:1fr}
+  .main{padding:0 16px}
+}
+
+/* Mobile nav toggle */
+.nav-links.show{display:flex;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:var(--teal);padding:16px 24px;gap:0}
+.nav-links.show a{padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.1)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+<div class="nav-inner">
+  <a href="#" class="nav-logo">
+    <svg width="30" height="30" viewBox="0 0 60 62" fill="none"><circle cx="21" cy="9" r="7" fill="white" opacity="0.95"/><circle cx="39" cy="9" r="7" fill="white" opacity="0.95"/><circle cx="9" cy="23" r="5.5" fill="white" opacity="0.95"/><circle cx="51" cy="23" r="5.5" fill="white" opacity="0.95"/><path d="M30 56 C21 54, 12 47, 12 38 C12 32, 16 28, 21 30 C25 31.5, 27 29, 30 29 C33 29, 35 31.5, 39 30 C44 28, 48 32, 48 38 C48 47, 39 54, 30 56Z" fill="white" opacity="0.95"/><path d="M30 50 C30 50, 21.5 42.5, 21.5 37.5 C21.5 34, 24.5 32, 27 34.5 L30 38 L33 34.5 C35.5 32, 38.5 34, 38.5 37.5 C38.5 42.5, 30 50, 30 50Z" fill="#E58B3F"/></svg>
+    Patas Seguras
+  </a>
+  <ul class="nav-links">
+    <li><a href="#sobre">Sobre</a></li>
+    <li><a href="#denuncie">Denuncie</a></li>
+    <li><a href="https://www.instagram.com/projetopatasseguras/" target="_blank">Instagram</a></li>
+  </ul>
+  <a href="#doar" class="nav-cta">Doar</a>
+  <button class="mobile-menu" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+</nav>
+
+<!-- BANNER — Troque o src da imagem abaixo pelo seu banner -->
+<div class="banner" id="banner">
+  <!-- PARA TROCAR O BANNER: substitua o src abaixo pela URL da sua imagem -->
+  <!-- Exemplo: <img src="seu-banner.jpg" alt="Projeto Patas Seguras"> -->
+  <img src="banner.jpg" alt="Projeto Patas Seguras — Toda vida merece proteção" onerror="this.parentElement.innerHTML='<div class=\'banner-placeholder\'><svg width=\'80\' height=\'80\' viewBox=\'0 0 60 62\' fill=\'none\'><circle cx=\'21\' cy=\'9\' r=\'7\' fill=\'white\' opacity=\'0.4\'/><circle cx=\'39\' cy=\'9\' r=\'7\' fill=\'white\' opacity=\'0.4\'/><circle cx=\'9\' cy=\'23\' r=\'5.5\' fill=\'white\' opacity=\'0.4\'/><circle cx=\'51\' cy=\'23\' r=\'5.5\' fill=\'white\' opacity=\'0.4\'/><path d=\'M30 56 C21 54, 12 47, 12 38 C12 32, 16 28, 21 30 C25 31.5, 27 29, 30 29 C33 29, 35 31.5, 39 30 C44 28, 48 32, 48 38 C48 47, 39 54, 30 56Z\' fill=\'white\' opacity=\'0.4\'/></svg><p>Adicione um banner: coloque banner.jpg nesta pasta</p></div>'">
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- LEFT: INFO -->
+<div class="main-content" id="sobre">
+  <h1 class="project-title">Ajude o <span>Projeto Patas Seguras</span></h1>
+  <p class="project-desc">Sua contribuição ajuda a manter e ampliar a divulgação de materiais gratuitos sobre proteção animal, combate aos maus-tratos e adoção responsável. Juntos, podemos levar informação a mais pessoas e fortalecer a defesa dos animais em todo o Brasil.</p>
+  <div class="project-highlight">
+    <p>Contribua para manter o projeto disponível e impactar mais vidas.</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-mini"><p class="num">5.700+</p><p class="label">Casos em MG (2026)</p></div>
+    <div class="stat-mini"><p class="num">37/h</p><p class="label">Animais sofrem maus-tratos</p></div>
+    <div class="stat-mini"><p class="num">100%</p><p class="label">Abrigos superlotados</p></div>
+    <div class="stat-mini"><p class="num">934</p><p class="label">Resgatados em BH</p></div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="about-cards">
+    <div class="about-card"><div class="icon">🚨</div><div><h4>Resgate</h4><p>Atuamos no resgate de animais em situação de maus-tratos e abandono</p></div></div>
+    <div class="about-card"><div class="icon">📢</div><div><h4>Conscientização</h4><p>Educamos sobre direitos animais e como denunciar</p></div></div>
+    <div class="about-card"><div class="icon">⚖️</div><div><h4>Apoio Legal</h4><p>Orientamos sobre a Lei Sansão e canais de denúncia</p></div></div>
+    <div class="about-card"><div class="icon">🏠</div><div><h4>Adoção</h4><p>Promovemos a adoção responsável e consciente</p></div></div>
+  </div>
+
+  <!-- CHANNELS -->
+  <div class="channels-section" id="denuncie">
+    <h3>Canais de Denúncia</h3>
+    <div class="channel-row">
+      <div class="channel"><div class="channel-badge" style="background:#E74C3C">190</div><div><h4>Polícia Militar</h4><p>Emergência — risco imediato</p></div></div>
+      <div class="channel"><div class="channel-badge" style="background:#3498DB">181</div><div><h4>Disque-Denúncia</h4><p>Anônimo</p></div></div>
+      <div class="channel"><div class="channel-badge" style="background:#27AE60">🏛️</div><div><h4>Delegacia / BO Online</h4><p>Boletim formal</p></div></div>
+      <div class="channel"><div class="channel-badge" style="background:#8E44AD">⚖️</div><div><h4>Ministério Público</h4><p>Casos graves</p></div></div>
+      <div class="channel"><div class="channel-badge" style="background:var(--orange)">📱</div><div><h4>IBAMA</h4><p>0800 61 8080 — fauna silvestre</p></div></div>
+    </div>
+  </div>
+
+  <!-- PDF DOWNLOAD -->
+  <div class="pdf-card">
+    <div class="pdf-icon">📄</div>
+    <div>
+      <h4>Projeto Patas Seguras — Guia de Proteção Animal</h4>
+      <p>Cartilha digital educativa com orientações sobre maus-tratos, canais de denúncia e legislação.</p>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT: DONATION CARD -->
+<div id="doar">
+<div class="donate-card">
+  <h2>Escolha quanto contribuir</h2>
+  <p class="subtitle">Qualquer valor faz a diferença!</p>
+
+  <!-- AMOUNTS -->
+  <p class="amounts-label">Valores sugeridos</p>
+  <div class="amounts-grid">
+    <button class="amount-btn active" onclick="selectAmount(9.90, this)">R$ 9,90</button>
+    <button class="amount-btn" onclick="selectAmount(29.90, this)">R$ 29,90</button>
+    <button class="amount-btn" onclick="selectAmount(49.90, this)">R$ 49,90</button>
+    <button class="amount-btn" onclick="selectAmount(69.90, this)">R$ 69,90</button>
+  </div>
+  <button class="more-toggle" onclick="toggleMore()">
+    <span id="moreIcon">+</span> Quero contribuir com mais
+  </button>
+  <div class="extra-amounts" id="extraAmounts">
+    <button class="amount-btn" onclick="selectAmount(109.90, this)">R$ 109,90</button>
+    <button class="amount-btn" onclick="selectAmount(299.90, this)">R$ 299,90</button>
+  </div>
+
+  <input type="number" class="custom-input" id="customAmount" placeholder="Ou digite outro valor (R$)" min="1" step="0.01" oninput="customInput()">
+
+  <!-- PAYMENT METHOD -->
+  <p class="payment-label">Forma de pagamento</p>
+  <div class="pay-tabs">
+    <button class="pay-tab active" onclick="selectMethod('pix', this)">
+      <span class="tab-icon">📱</span> Pix
+    </button>
+    <button class="pay-tab" onclick="selectMethod('card', this)">
+      <span class="tab-icon">💳</span> Cartão de crédito
+    </button>
+  </div>
+
+  <!-- SELECTED DISPLAY -->
+  <div class="selected-display">
+    <span class="label">Forma de pagamento</span>
+    <span class="value" id="displayAmount">R$ 9,90</span>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-group">
+    <label>Nome completo</label>
+    <input type="text" id="donorName" placeholder="Seu nome">
+  </div>
+  <div class="form-group">
+    <label>E-mail</label>
+    <input type="email" id="donorEmail" placeholder="voce@exemplo.com">
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>CPF ou CNPJ</label>
+      <input type="text" id="donorDoc" placeholder="Somente números" maxlength="18" oninput="maskDoc(this)">
+    </div>
+    <div class="form-group">
+      <label>Celular</label>
+      <input type="tel" id="donorPhone" placeholder="(00) 00000-0000" maxlength="15" oninput="maskPhone(this)">
+    </div>
+  </div>
+
+  <!-- PAY BUTTONS -->
+  <button class="pay-btn pay-btn-pix" id="btnPix" onclick="processDonation()">
+    <span>📱</span> Gerar Pix
+  </button>
+  <button class="pay-btn pay-btn-card" id="btnCard" onclick="processDonation()">
+    <span>💳</span> Pagar com Cartão
+  </button>
+
+  <div class="secure-line">
+    <span>🔒</span>
+    <p>Pagamento seguro via Mercado Pago</p>
+  </div>
+
+  <div class="social-proof">
+    <p>Projeto de <strong>Projeto Patas Seguras</strong></p>
+    <p style="margin-top:4px"><a href="https://www.instagram.com/projetopatasseguras/" target="_blank">@projetopatasseguras</a></p>
+  </div>
+</div>
+</div>
+
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-logo">
+    <svg width="28" height="28" viewBox="0 0 60 62" fill="none"><circle cx="21" cy="9" r="7" fill="white" opacity="0.95"/><circle cx="39" cy="9" r="7" fill="white" opacity="0.95"/><circle cx="9" cy="23" r="5.5" fill="white" opacity="0.95"/><circle cx="51" cy="23" r="5.5" fill="white" opacity="0.95"/><path d="M30 56 C21 54, 12 47, 12 38 C12 32, 16 28, 21 30 C25 31.5, 27 29, 30 29 C33 29, 35 31.5, 39 30 C44 28, 48 32, 48 38 C48 47, 39 54, 30 56Z" fill="white" opacity="0.95"/><path d="M30 50 C30 50, 21.5 42.5, 21.5 37.5 C21.5 34, 24.5 32, 27 34.5 L30 38 L33 34.5 C35.5 32, 38.5 34, 38.5 37.5 C38.5 42.5, 30 50, 30 50Z" fill="#E58B3F"/></svg>
+    <span>Projeto Patas Seguras</span>
+  </div>
+  <div class="footer-social">
+    <a href="https://www.instagram.com/projetopatasseguras/" target="_blank" aria-label="Instagram">📷</a>
+  </div>
+  <p>&copy; 2026 Projeto Patas Seguras. Todos os direitos reservados.</p>
+</footer>
+
+<script>
+let selectedAmount = 9.90;
+let payMethod = 'pix';
+
+function selectAmount(val, btn) {
+  selectedAmount = val;
+  document.getElementById('customAmount').value = '';
+  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateDisplay();
+}
+
+function customInput() {
+  const v = parseFloat(document.getElementById('customAmount').value);
+  if (v > 0) {
+    selectedAmount = v;
+    document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+  }
+  updateDisplay();
+}
+
+function selectMethod(method, btn) {
+  payMethod = method;
+  document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  if (method === 'pix') {
+    document.getElementById('btnPix').style.display = 'flex';
+    document.getElementById('btnCard').style.display = 'none';
+  } else {
+    document.getElementById('btnPix').style.display = 'none';
+    document.getElementById('btnCard').style.display = 'flex';
+  }
+  updateDisplay();
+}
+
+function toggleMore() {
+  const el = document.getElementById('extraAmounts');
+  const icon = document.getElementById('moreIcon');
+  el.classList.toggle('show');
+  icon.textContent = el.classList.contains('show') ? '−' : '+';
+}
+
+function updateDisplay() {
+  const custom = parseFloat(document.getElementById('customAmount').value);
+  const amount = (custom > 0) ? custom : selectedAmount;
+  document.getElementById('displayAmount').textContent = 'R$ ' + amount.toFixed(2).replace('.', ',');
+}
+
+function getAmount() {
+  const custom = parseFloat(document.getElementById('customAmount').value);
+  return (custom > 0) ? custom : (selectedAmount || 9.90);
+}
+
+function maskDoc(el) {
+  let v = el.value.replace(/\D/g, '');
+  if (v.length <= 11) {
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  } else {
+    v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    v = v.replace(/(\d{4})(\d)/, '$1-$2');
+  }
+  el.value = v;
+}
+
+function maskPhone(el) {
+  let v = el.value.replace(/\D/g, '');
+  v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+  v = v.replace(/(\d{5})(\d)/, '$1-$2');
+  el.value = v;
+}
+
+// =============================================
+// MERCADO PAGO INTEGRATION
+// =============================================
+// Para ativar: configure MP_API_URL com seu endpoint Vercel
+// Exemplo: window.MP_API_URL = 'https://seu-projeto.vercel.app/api';
+
+function processDonation() {
+  const amount = getAmount();
+  const name = document.getElementById('donorName').value;
+  const email = document.getElementById('donorEmail').value;
+
+  // Se a API do Mercado Pago está configurada, usa ela
+  if (window.MP_API_URL) {
+    createMPPayment(amount, name, email);
+    return;
+  }
+
+  // Fallback: redireciona para ApoiaPix
+  window.open('https://www.apoiapix.site/apoio/projeto-patas-seguras', '_blank');
+}
+
+async function createMPPayment(amount, name, email) {
+  const btn = payMethod === 'pix' ? document.getElementById('btnPix') : document.getElementById('btnCard');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> Processando...';
+
+  try {
+    const res = await fetch(window.MP_API_URL + '/create-preference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: amount,
+        method: payMethod,
+        name: name || 'Doador',
+        email: email || '',
+        title: 'Doação - Projeto Patas Seguras',
+        description: 'Doação de R$ ' + amount.toFixed(2) + ' para o Projeto Patas Seguras'
+      })
+    });
+    const data = await res.json();
+    if (data.init_point) {
+      window.location.href = data.init_point;
+    } else if (data.error) {
+      alert('Erro: ' + data.error);
+    }
+  } catch (e) {
+    // Fallback
+    window.open('https://www.apoiapix.site/apoio/projeto-patas-seguras', '_blank');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+}
+
+// Auto-detecta se está rodando no Vercel (mesma origem) ou GitHub Pages
+(function() {
+  if (location.hostname.includes('vercel.app') || location.hostname.includes('localhost')) {
+    window.MP_API_URL = location.origin + '/api';
+  }
+  // Para GitHub Pages, configure manualmente:
+  // window.MP_API_URL = 'https://SEU-PROJETO.vercel.app/api';
+})();
+
+// Status de pagamento (retorno do Mercado Pago)
+(function() {
+  const params = new URLSearchParams(location.search);
+  const status = params.get('status');
+  if (status === 'approved') {
+    setTimeout(() => alert('Obrigado pela sua doação! Seu pagamento foi aprovado. 🐾💛'), 500);
+  } else if (status === 'rejected') {
+    setTimeout(() => alert('Pagamento não aprovado. Tente novamente ou escolha outro método.'), 500);
+  } else if (status === 'pending') {
+    setTimeout(() => alert('Pagamento pendente. Você receberá a confirmação em breve.'), 500);
+  }
+})();
+</script>
+
+</body>
+</html>
