@@ -148,6 +148,23 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--text);background:var(-
 .pdf-card p{font-size:13px;color:var(--text-light);font-weight:600}
 .pdf-card a{color:var(--orange);font-weight:800;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:4px}
 
+/* PIX RESULT */
+.pix-result{background:var(--sage-light);border-radius:16px;padding:28px;text-align:center;margin-bottom:16px;border:2px solid var(--teal)}
+.pix-header{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px}
+.pix-header span{font-size:28px}
+.pix-header h3{font-weight:900;font-size:20px;color:var(--teal)}
+.pix-qr{background:#fff;border-radius:12px;padding:16px;display:inline-block;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.pix-qr img{width:220px;height:220px;display:block}
+.pix-instruction{font-size:14px;color:var(--text-light);font-weight:700;margin-bottom:12px}
+.pix-copy-area{display:flex;gap:8px;margin-bottom:16px}
+.pix-copy-area input{flex:1;padding:12px 14px;border:2px solid var(--teal);border-radius:10px;font-size:12px;font-weight:600;color:var(--text);font-family:monospace;background:#fff}
+.copy-btn{background:var(--teal);color:#fff;border:none;border-radius:10px;padding:12px 20px;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s}
+.copy-btn:hover{background:var(--teal-light)}
+.copy-btn.copied{background:#27AE60}
+.pix-timer{font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:16px}
+.pix-new-btn{background:none;border:2px solid var(--teal);color:var(--teal);border-radius:10px;padding:10px 24px;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;transition:all .2s}
+.pix-new-btn:hover{background:var(--teal);color:#fff}
+
 /* RESPONSIVE */
 @media(max-width:900px){
   .main{grid-template-columns:1fr;margin-top:0}
@@ -316,6 +333,24 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--text);background:var(-
     <span>💳</span> Pagar com Cartão
   </button>
 
+  <!-- PIX RESULT -->
+  <div class="pix-result" id="pixResult" style="display:none">
+    <div class="pix-header">
+      <span>✅</span>
+      <h3>Pix gerado com sucesso!</h3>
+    </div>
+    <div class="pix-qr">
+      <img id="pixQrImg" alt="QR Code Pix">
+    </div>
+    <p class="pix-instruction">Escaneie o QR Code acima ou copie o código abaixo:</p>
+    <div class="pix-copy-area">
+      <input type="text" id="pixCode" readonly>
+      <button class="copy-btn" onclick="copyPix()">Copiar</button>
+    </div>
+    <p class="pix-timer" id="pixTimer">Pix válido por <strong>30 minutos</strong></p>
+    <button class="pix-new-btn" onclick="closePix()">Fazer nova doação</button>
+  </div>
+
   <div class="secure-line">
     <span>🔒</span>
     <p>Pagamento seguro via Mercado Pago</p>
@@ -417,59 +452,69 @@ function maskPhone(el) {
   el.value = v;
 }
 
-// =============================================
-// MERCADO PAGO INTEGRATION
-// =============================================
-// Para ativar: configure MP_API_URL com seu endpoint Vercel
-// Exemplo: window.MP_API_URL = 'https://seu-projeto.vercel.app/api';
-
 function processDonation() {
   const amount = getAmount();
   const name = document.getElementById('donorName').value;
   const email = document.getElementById('donorEmail').value;
+  const doc = document.getElementById('donorDoc').value;
 
-  // Se a API do Mercado Pago está configurada, usa ela
-  if (window.MP_API_URL) {
-    createMPPayment(amount, name, email);
+  if (!window.MP_API_URL) {
+    window.open('https://www.apoiapix.site/apoio/projeto-patas-seguras', '_blank');
     return;
   }
 
-  // Fallback: redireciona para ApoiaPix
-  window.open('https://www.apoiapix.site/apoio/projeto-patas-seguras', '_blank');
-}
-
-async function createMPPayment(amount, name, email) {
   const btn = payMethod === 'pix' ? document.getElementById('btnPix') : document.getElementById('btnCard');
   const originalText = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '<span>⏳</span> Processando...';
 
-  try {
-    const res = await fetch(window.MP_API_URL + '/create-preference', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: amount,
-        method: payMethod,
-        name: name || 'Doador',
-        email: email || '',
-        title: 'Doação - Projeto Patas Seguras',
-        description: 'Doação de R$ ' + amount.toFixed(2) + ' para o Projeto Patas Seguras'
-      })
-    });
-    const data = await res.json();
-    if (data.init_point) {
+  fetch(window.MP_API_URL + '/create-preference', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      amount, method: payMethod, name: name || 'Doador',
+      email: email || '', doc: doc || ''
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.type === 'pix' && data.qr_code) {
+      showPixResult(data);
+    } else if (data.type === 'card' && data.init_point) {
       window.location.href = data.init_point;
     } else if (data.error) {
-      alert('Erro: ' + data.error);
+      alert('Erro: ' + data.error + (data.details ? '\n' + JSON.stringify(data.details) : ''));
     }
-  } catch (e) {
-    // Fallback
+  })
+  .catch(() => {
     window.open('https://www.apoiapix.site/apoio/projeto-patas-seguras', '_blank');
-  } finally {
+  })
+  .finally(() => {
     btn.disabled = false;
     btn.innerHTML = originalText;
-  }
+  });
+}
+
+function showPixResult(data) {
+  document.getElementById('pixQrImg').src = 'data:image/png;base64,' + data.qr_code_base64;
+  document.getElementById('pixCode').value = data.qr_code;
+  document.getElementById('pixResult').style.display = 'block';
+  document.getElementById('pixResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function copyPix() {
+  const code = document.getElementById('pixCode');
+  code.select();
+  navigator.clipboard.writeText(code.value).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 3000);
+  });
+}
+
+function closePix() {
+  document.getElementById('pixResult').style.display = 'none';
 }
 
 // API do Mercado Pago — sempre usa a mesma origem
