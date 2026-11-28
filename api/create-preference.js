@@ -53,15 +53,18 @@ module.exports = async function handler(req, res) {
 
   try {
     if (method === 'pix') {
+      const debug = {};
+
       // 1. Obter user ID
       const userResp = await mpRequest('GET', '/users/me', null, accessToken);
+      debug.user = { status: userResp.status, id: userResp.data.id };
       if (!userResp.data.id) {
-        return res.status(400).json({ error: 'Erro ao obter dados da conta', details: userResp.data });
+        return res.status(400).json({ error: 'Erro ao obter dados da conta', debug, details: userResp.data });
       }
       const userId = userResp.data.id;
 
       // 2. Criar loja (ignora se já existe)
-      await mpRequest('POST', '/users/' + userId + '/stores', {
+      const storeResp = await mpRequest('POST', '/users/' + userId + '/stores', {
         name: 'Projeto Patas Seguras',
         external_id: STORE_EXTERNAL_ID,
         location: {
@@ -70,15 +73,17 @@ module.exports = async function handler(req, res) {
           state_name: 'Sao Paulo'
         }
       }, accessToken);
+      debug.store = { status: storeResp.status, id: storeResp.data.id, error: storeResp.data.message };
 
       // 3. Criar caixa/POS (ignora se já existe)
-      await mpRequest('POST', '/pos', {
+      const posResp = await mpRequest('POST', '/pos', {
         name: 'Doacoes Online',
         external_id: POS_EXTERNAL_ID,
         external_store_id: STORE_EXTERNAL_ID,
         fixed_amount: false,
         category: 5611203
       }, accessToken);
+      debug.pos = { status: posResp.status, id: posResp.data.id, error: posResp.data.message };
 
       // 4. Criar order com QR Code dinâmico
       const qrResp = await mpRequest('PUT',
@@ -96,6 +101,7 @@ module.exports = async function handler(req, res) {
             total_amount: Number(amount)
           }]
         }, accessToken);
+      debug.qr = { status: qrResp.status, data: qrResp.data };
 
       if (qrResp.data.qr_data) {
         return res.status(200).json({
@@ -107,7 +113,7 @@ module.exports = async function handler(req, res) {
 
       return res.status(400).json({
         error: 'Erro ao gerar QR Code',
-        details: qrResp.data
+        debug
       });
     }
 

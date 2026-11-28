@@ -443,7 +443,9 @@ async function generatePix() {
       document.getElementById('payButtons').style.display = 'none';
       document.getElementById('pixResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
-      alert('Erro ao gerar Pix: ' + (data.error || JSON.stringify(data.details) || 'Tente novamente'));
+      const msg = data.error || 'Tente novamente';
+      const dbg = data.debug ? '\n\nDetalhes:\n' + JSON.stringify(data.debug, null, 2) : '';
+      alert('Erro ao gerar Pix: ' + msg + dbg);
     }
   } catch (e) {
     alert('Erro de conexão. Tente novamente.');
