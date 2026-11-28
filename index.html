@@ -423,7 +423,7 @@ async function generatePix() {
     });
     const data = await resp.json();
 
-    if (data.qr_code && data.qr_code_base64) {
+    if (data.type === 'pix' && data.qr_code && data.qr_code_base64) {
       document.getElementById('pixCode').value = data.qr_code;
       document.getElementById('pixAmountDisplay').textContent = 'R$ ' + amount.toFixed(2).replace('.', ',');
 
@@ -440,6 +440,8 @@ async function generatePix() {
       document.getElementById('pixResult').style.display = 'block';
       document.getElementById('payButtons').style.display = 'none';
       document.getElementById('pixResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (data.type === 'pix_redirect' && data.init_point) {
+      window.location.href = data.init_point;
     } else {
       alert('Erro ao gerar Pix: ' + (data.error || 'Tente novamente'));
     }

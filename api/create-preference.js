@@ -41,36 +41,64 @@ module.exports = async function handler(req, res) {
   const { amount, method } = req.body;
   if (!amount || amount <= 0) return res.status(400).json({ error: 'Valor inválido' });
 
+  const siteUrl = req.headers.origin || 'https://projeto-patas-seguras.online';
+
   try {
     if (method === 'pix') {
-      const payment = await mpRequest('/v1/payments', {
-        transaction_amount: Number(amount),
-        payment_method_id: 'pix',
-        description: 'Doação - Projeto Patas Seguras',
-        payer: {
-          email: 'doador@projetopatasseguras.org'
-        }
-      }, accessToken);
+      // Tenta gerar Pix inline via Payments API
+      try {
+        const payment = await mpRequest('/v1/payments', {
+          transaction_amount: Number(amount),
+          payment_method_id: 'pix',
+          description: 'Doação - Projeto Patas Seguras',
+          payer: {
+            email: 'doador@projetopatasseguras.org'
+          }
+        }, accessToken);
 
-      if (payment.id && payment.point_of_interaction) {
-        const txData = payment.point_of_interaction.transaction_data;
-        return res.status(200).json({
-          type: 'pix',
-          payment_id: payment.id,
-          qr_code: txData.qr_code,
-          qr_code_base64: txData.qr_code_base64
-        });
+        if (payment.id && payment.point_of_interaction) {
+          const txData = payment.point_of_interaction.transaction_data;
+          return res.status(200).json({
+            type: 'pix',
+            payment_id: payment.id,
+            qr_code: txData.qr_code,
+            qr_code_base64: txData.qr_code_base64
+          });
+        }
+      } catch (e) {
+        // Pix inline falhou, cai no fallback abaixo
       }
 
-      return res.status(400).json({
-        error: payment.message || 'Erro ao gerar Pix',
-        cause: payment.cause || undefined,
-        status: payment.status
-      });
+      // Fallback: Checkout Pro com Pix habilitado
+      const preference = await mpRequest('/checkout/preferences', {
+        items: [{
+          title: 'Doação - Projeto Patas Seguras',
+          description: 'Doação de R$ ' + Number(amount).toFixed(2),
+          quantity: 1,
+          currency_id: 'BRL',
+          unit_price: Number(amount)
+        }],
+        payment_methods: {
+          excluded_payment_types: [{ id: 'ticket' }, { id: 'atm' }],
+          installments: 1
+        },
+        back_urls: {
+          success: siteUrl + '?status=approved',
+          failure: siteUrl + '?status=rejected',
+          pending: siteUrl + '?status=pending'
+        },
+        auto_return: 'approved',
+        statement_descriptor: 'PATAS SEGURAS'
+      }, accessToken);
+
+      if (preference.init_point) {
+        return res.status(200).json({ type: 'pix_redirect', init_point: preference.init_point });
+      }
+
+      return res.status(400).json({ error: 'Erro ao gerar Pix' });
     }
 
     // Cartão: Checkout Pro
-    const siteUrl = req.headers.origin || 'https://projeto-patas-seguras.online';
     const preference = await mpRequest('/checkout/preferences', {
       items: [{
         title: 'Doação - Projeto Patas Seguras',
