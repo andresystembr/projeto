@@ -8,6 +8,7 @@
 <meta property="og:title" content="Projeto Patas Seguras — Doe e Salve Vidas">
 <meta property="og:description" content="Doe via Pix ou cartão e ajude a salvar vidas animais.">
 <meta property="og:type" content="website">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -423,27 +424,26 @@ async function generatePix() {
     });
     const data = await resp.json();
 
-    if (data.type === 'pix' && data.qr_code && data.qr_code_base64) {
-      document.getElementById('pixCode').value = data.qr_code;
+    if (data.type === 'pix' && data.qr_data) {
+      document.getElementById('pixCode').value = data.qr_data;
       document.getElementById('pixAmountDisplay').textContent = 'R$ ' + amount.toFixed(2).replace('.', ',');
 
       const container = document.getElementById('pixQrContainer');
       container.innerHTML = '';
-      const img = document.createElement('img');
-      img.src = 'data:image/png;base64,' + data.qr_code_base64;
-      img.width = 220;
-      img.height = 220;
-      img.alt = 'QR Code Pix';
-      img.style.borderRadius = '8px';
-      container.appendChild(img);
+      new QRCode(container, {
+        text: data.qr_data,
+        width: 220,
+        height: 220,
+        colorDark: '#2B5B59',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
 
       document.getElementById('pixResult').style.display = 'block';
       document.getElementById('payButtons').style.display = 'none';
       document.getElementById('pixResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else if (data.type === 'pix_redirect' && data.init_point) {
-      window.location.href = data.init_point;
     } else {
-      alert('Erro ao gerar Pix: ' + (data.error || 'Tente novamente'));
+      alert('Erro ao gerar Pix: ' + (data.error || JSON.stringify(data.details) || 'Tente novamente'));
     }
   } catch (e) {
     alert('Erro de conexão. Tente novamente.');
