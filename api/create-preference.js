@@ -68,11 +68,12 @@ module.exports = async function handler(req, res) {
         name: 'Projeto Patas Seguras',
         external_id: STORE_EXTERNAL_ID,
         location: {
-          street_name: 'Rua Online 1',
+          street_name: 'Avenida Paulista',
+          street_number: '1000',
           city_name: 'Sao Paulo',
-          state_name: 'Sao Paulo',
-          latitude: -23.5505,
-          longitude: -46.6333
+          state_name: 'SP',
+          latitude: -23.5614,
+          longitude: -46.6558
         }
       }, accessToken);
       debug.store = { status: storeResp.status, id: storeResp.data.id, error: storeResp.data.message };
