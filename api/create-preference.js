@@ -71,7 +71,6 @@ module.exports = async function handler(req, res) {
           street_name: 'Avenida Paulista',
           street_number: '1000',
           city_name: 'Sao Paulo',
-          state_name: 'SP',
           latitude: -23.5614,
           longitude: -46.6558
         }
