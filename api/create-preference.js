@@ -63,7 +63,8 @@ module.exports = async function handler(req, res) {
       }
       const userId = userResp.data.id;
 
-      // 2. Criar loja (ignora se já existe)
+      // 2. Criar loja ou buscar existente
+      let storeId;
       const storeResp = await mpRequest('POST', '/users/' + userId + '/stores', {
         name: 'Projeto Patas Seguras',
         external_id: STORE_EXTERNAL_ID,
@@ -76,17 +77,38 @@ module.exports = async function handler(req, res) {
           longitude: -46.6558
         }
       }, accessToken);
-      debug.store = { status: storeResp.status, id: storeResp.data.id, error: storeResp.data.message };
 
-      // 3. Criar caixa/POS (ignora se já existe)
+      if (storeResp.data.id) {
+        storeId = storeResp.data.id;
+      } else {
+        // Loja já existe, buscar pelo external_id
+        const storesListResp = await mpRequest('GET', '/users/' + userId + '/stores/search?external_id=' + STORE_EXTERNAL_ID, null, accessToken);
+        if (storesListResp.data.results && storesListResp.data.results.length > 0) {
+          storeId = storesListResp.data.results[0].id;
+        } else if (storesListResp.data.id) {
+          storeId = storesListResp.data.id;
+        }
+      }
+      debug.store = { status: storeResp.status, id: storeId, error: storeResp.data.message };
+
+      if (!storeId) {
+        return res.status(400).json({ error: 'Erro ao criar/encontrar loja', debug });
+      }
+
+      // 3. Criar caixa/POS ou buscar existente
+      let posId;
       const posResp = await mpRequest('POST', '/pos', {
         name: 'Doacoes Online',
         external_id: POS_EXTERNAL_ID,
-        external_store_id: STORE_EXTERNAL_ID,
+        store_id: Number(storeId),
         fixed_amount: false,
         category: 5611203
       }, accessToken);
-      debug.pos = { status: posResp.status, id: posResp.data.id, error: posResp.data.message };
+
+      if (posResp.data.id) {
+        posId = posResp.data.id;
+      }
+      debug.pos = { status: posResp.status, id: posId, external_id: posResp.data.external_id, error: posResp.data.message };
 
       // 4. Criar order com QR Code dinâmico
       const qrResp = await mpRequest('PUT',
