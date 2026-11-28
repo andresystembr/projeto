@@ -472,14 +472,8 @@ async function createMPPayment(amount, name, email) {
   }
 }
 
-// Auto-detecta se está rodando no Vercel (mesma origem) ou GitHub Pages
-(function() {
-  if (location.hostname.includes('vercel.app') || location.hostname.includes('localhost')) {
-    window.MP_API_URL = location.origin + '/api';
-  }
-  // Para GitHub Pages, configure manualmente:
-  // window.MP_API_URL = 'https://SEU-PROJETO.vercel.app/api';
-})();
+// API do Mercado Pago — sempre usa a mesma origem
+window.MP_API_URL = location.origin + '/api';
 
 // Status de pagamento (retorno do Mercado Pago)
 (function() {
