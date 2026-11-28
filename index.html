@@ -8,6 +8,7 @@
 <meta property="og:title" content="Projeto Patas Seguras — Doe e Salve Vidas">
 <meta property="og:description" content="Doe via Pix ou cartão e ajude a salvar vidas animais.">
 <meta property="og:type" content="website">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -148,6 +149,23 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--text);background:var(-
 .pdf-card p{font-size:13px;color:var(--text-light);font-weight:600}
 .pdf-card a{color:var(--orange);font-weight:800;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:4px}
 
+/* PIX RESULT */
+.pix-result{background:var(--sage-light);border-radius:16px;padding:28px;text-align:center;margin-bottom:16px;border:2px solid var(--teal)}
+.pix-header{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px}
+.pix-header span{font-size:28px}
+.pix-header h3{font-weight:900;font-size:20px;color:var(--teal)}
+.pix-amount{font-size:28px;font-weight:900;color:var(--teal);margin-bottom:16px}
+.pix-qr{background:#fff;border-radius:12px;padding:16px;display:inline-block;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.pix-qr canvas{display:block!important}
+.pix-instruction{font-size:14px;color:var(--text-light);font-weight:700;margin-bottom:12px}
+.pix-copy-area{display:flex;gap:8px;margin-bottom:4px}
+.pix-copy-area input{flex:1;padding:12px 10px;border:2px solid var(--teal);border-radius:10px;font-size:11px;font-weight:600;color:var(--text);font-family:monospace;background:#fff}
+.copy-btn{background:var(--teal);color:#fff;border:none;border-radius:10px;padding:12px 20px;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s}
+.copy-btn:hover{background:var(--teal-light)}
+.copy-btn.copied{background:#27AE60}
+.pix-new-btn{background:none;border:2px solid var(--teal);color:var(--teal);border-radius:10px;padding:10px 24px;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;transition:all .2s;margin-top:16px}
+.pix-new-btn:hover{background:var(--teal);color:#fff}
+
 /* RESPONSIVE */
 @media(max-width:900px){
   .main{grid-template-columns:1fr;margin-top:0}
@@ -284,41 +302,40 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--text);background:var(-
 
   <!-- SELECTED DISPLAY -->
   <div class="selected-display">
-    <span class="label">Forma de pagamento</span>
+    <span class="label">Valor selecionado</span>
     <span class="value" id="displayAmount">R$ 9,90</span>
   </div>
 
-  <!-- FORM -->
-  <div class="form-group">
-    <label>Nome completo</label>
-    <input type="text" id="donorName" placeholder="Seu nome">
-  </div>
-  <div class="form-group">
-    <label>E-mail</label>
-    <input type="email" id="donorEmail" placeholder="voce@exemplo.com">
-  </div>
-  <div class="form-row">
-    <div class="form-group">
-      <label>CPF ou CNPJ</label>
-      <input type="text" id="donorDoc" placeholder="Somente números" maxlength="18" oninput="maskDoc(this)">
-    </div>
-    <div class="form-group">
-      <label>Celular</label>
-      <input type="tel" id="donorPhone" placeholder="(00) 00000-0000" maxlength="15" oninput="maskPhone(this)">
-    </div>
+  <!-- PAY BUTTONS -->
+  <div id="payButtons">
+    <button class="pay-btn pay-btn-pix" id="btnPix" onclick="generatePix()">
+      <span>📱</span> Gerar Pix
+    </button>
+    <button class="pay-btn pay-btn-card" id="btnCard" onclick="payCard()">
+      <span>💳</span> Pagar com Cartão
+    </button>
   </div>
 
-  <!-- PAY BUTTONS -->
-  <button class="pay-btn pay-btn-pix" id="btnPix" onclick="processDonation()">
-    <span>📱</span> Gerar Pix
-  </button>
-  <button class="pay-btn pay-btn-card" id="btnCard" onclick="processDonation()">
-    <span>💳</span> Pagar com Cartão
-  </button>
+  <!-- PIX RESULT -->
+  <div class="pix-result" id="pixResult" style="display:none">
+    <div class="pix-header">
+      <span>✅</span>
+      <h3>Pix gerado!</h3>
+    </div>
+    <div class="pix-amount" id="pixAmountDisplay"></div>
+    <div class="pix-qr" id="pixQrContainer"></div>
+    <p class="pix-instruction">Escaneie o QR Code ou copie o código abaixo:</p>
+    <div class="pix-copy-area">
+      <input type="text" id="pixCode" readonly>
+      <button class="copy-btn" onclick="copyPix()">Copiar</button>
+    </div>
+    <p class="pix-instruction" style="margin-top:12px;font-size:12px;color:var(--text-muted)">Abra o app do seu banco, escolha pagar com Pix e escaneie ou cole o código.</p>
+    <button class="pix-new-btn" onclick="closePix()">Escolher outro valor</button>
+  </div>
 
   <div class="secure-line">
     <span>🔒</span>
-    <p>Pagamento seguro via Mercado Pago</p>
+    <p>Pagamento seguro via Pix e Mercado Pago</p>
   </div>
 
   <div class="social-proof">
@@ -343,6 +360,13 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--text);background:var(-
 </footer>
 
 <script>
+// ============================================
+// CONFIGURAÇÃO PIX — coloque sua chave aqui
+// ============================================
+const PIX_KEY = 'SUA_CHAVE_PIX_AQUI';
+const PIX_NAME = 'PROJETO PATAS SEGURAS';
+const PIX_CITY = 'SAO PAULO';
+
 let selectedAmount = 9.90;
 let payMethod = 'pix';
 
@@ -367,13 +391,8 @@ function selectMethod(method, btn) {
   payMethod = method;
   document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  if (method === 'pix') {
-    document.getElementById('btnPix').style.display = 'flex';
-    document.getElementById('btnCard').style.display = 'none';
-  } else {
-    document.getElementById('btnPix').style.display = 'none';
-    document.getElementById('btnCard').style.display = 'flex';
-  }
+  document.getElementById('btnPix').style.display = method === 'pix' ? 'flex' : 'none';
+  document.getElementById('btnCard').style.display = method === 'card' ? 'flex' : 'none';
   updateDisplay();
 }
 
@@ -385,8 +404,7 @@ function toggleMore() {
 }
 
 function updateDisplay() {
-  const custom = parseFloat(document.getElementById('customAmount').value);
-  const amount = (custom > 0) ? custom : selectedAmount;
+  const amount = getAmount();
   document.getElementById('displayAmount').textContent = 'R$ ' + amount.toFixed(2).replace('.', ',');
 }
 
@@ -395,85 +413,113 @@ function getAmount() {
   return (custom > 0) ? custom : (selectedAmount || 9.90);
 }
 
-function maskDoc(el) {
-  let v = el.value.replace(/\D/g, '');
-  if (v.length <= 11) {
-    v = v.replace(/(\d{3})(\d)/, '$1.$2');
-    v = v.replace(/(\d{3})(\d)/, '$1.$2');
-    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-  } else {
-    v = v.replace(/^(\d{2})(\d)/, '$1.$2');
-    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-    v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
-    v = v.replace(/(\d{4})(\d)/, '$1-$2');
-  }
-  el.value = v;
+// ============================================
+// PIX ESTÁTICO — BR Code (padrão BACEN)
+// ============================================
+function pixPad(id, val) {
+  return id + String(val.length).padStart(2, '0') + val;
 }
 
-function maskPhone(el) {
-  let v = el.value.replace(/\D/g, '');
-  v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
-  v = v.replace(/(\d{5})(\d)/, '$1-$2');
-  el.value = v;
-}
-
-function processDonation() {
-  const amount = getAmount();
-  const name = document.getElementById('donorName').value;
-  const email = document.getElementById('donorEmail').value;
-
-  if (!window.MP_API_URL) {
-    window.open('https://www.apoiapix.site/apoio/projeto-patas-seguras', '_blank');
-    return;
-  }
-
-  const btn = payMethod === 'pix' ? document.getElementById('btnPix') : document.getElementById('btnCard');
-  const originalText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span>⏳</span> Processando...';
-
-  fetch(window.MP_API_URL + '/create-preference', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      amount, method: payMethod, name: name || 'Doador', email: email || ''
-    })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.init_point) {
-      if (payMethod === 'pix') {
-        window.open(data.init_point, '_blank');
-      } else {
-        window.location.href = data.init_point;
-      }
-    } else if (data.error) {
-      alert('Erro: ' + data.error);
+function pixCRC16(str) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+      crc &= 0xFFFF;
     }
-  })
-  .catch(() => {
-    window.open('https://www.apoiapix.site/apoio/projeto-patas-seguras', '_blank');
-  })
-  .finally(() => {
-    btn.disabled = false;
-    btn.innerHTML = originalText;
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+function generatePixPayload(amount) {
+  const gui = pixPad('00', 'br.gov.bcb.pix');
+  const key = pixPad('01', PIX_KEY);
+  const mai = pixPad('26', gui + key);
+
+  let payload = '';
+  payload += pixPad('00', '01');
+  payload += mai;
+  payload += pixPad('52', '0000');
+  payload += pixPad('53', '986');
+  if (amount > 0) payload += pixPad('54', amount.toFixed(2));
+  payload += pixPad('58', 'BR');
+  payload += pixPad('59', PIX_NAME.substring(0, 25));
+  payload += pixPad('60', PIX_CITY.substring(0, 15));
+  payload += pixPad('62', pixPad('05', '***'));
+  payload += '6304';
+  payload += pixCRC16(payload);
+  return payload;
+}
+
+function generatePix() {
+  const amount = getAmount();
+  const payload = generatePixPayload(amount);
+
+  document.getElementById('pixCode').value = payload;
+  document.getElementById('pixAmountDisplay').textContent = 'R$ ' + amount.toFixed(2).replace('.', ',');
+
+  const container = document.getElementById('pixQrContainer');
+  container.innerHTML = '';
+  new QRCode(container, {
+    text: payload,
+    width: 220,
+    height: 220,
+    colorDark: '#2B5B59',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  document.getElementById('pixResult').style.display = 'block';
+  document.getElementById('payButtons').style.display = 'none';
+  document.getElementById('pixResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function copyPix() {
+  const code = document.getElementById('pixCode');
+  code.select();
+  navigator.clipboard.writeText(code.value).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 3000);
   });
 }
 
-// API do Mercado Pago — sempre usa a mesma origem
-window.MP_API_URL = location.origin + '/api';
+function closePix() {
+  document.getElementById('pixResult').style.display = 'none';
+  document.getElementById('payButtons').style.display = 'block';
+}
 
-// Status de pagamento (retorno do Mercado Pago)
+// ============================================
+// CARTÃO — Mercado Pago Checkout Pro
+// ============================================
+function payCard() {
+  const amount = getAmount();
+  const btn = document.getElementById('btnCard');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> Processando...';
+
+  fetch(location.origin + '/api/create-preference', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount, method: 'card', name: 'Doador', email: '' })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.init_point) window.location.href = data.init_point;
+    else if (data.error) alert('Erro: ' + data.error);
+  })
+  .catch(() => window.open('https://www.apoiapix.site/apoio/projeto-patas-seguras', '_blank'))
+  .finally(() => { btn.disabled = false; btn.innerHTML = '<span>💳</span> Pagar com Cartão'; });
+}
+
+// Status de retorno do Mercado Pago
 (function() {
-  const params = new URLSearchParams(location.search);
-  const status = params.get('status');
-  if (status === 'approved') {
-    setTimeout(() => alert('Obrigado pela sua doação! Seu pagamento foi aprovado. 🐾💛'), 500);
-  } else if (status === 'rejected') {
-    setTimeout(() => alert('Pagamento não aprovado. Tente novamente ou escolha outro método.'), 500);
-  } else if (status === 'pending') {
-    setTimeout(() => alert('Pagamento pendente. Você receberá a confirmação em breve.'), 500);
-  }
+  const status = new URLSearchParams(location.search).get('status');
+  if (status === 'approved') setTimeout(() => alert('Obrigado pela doação! Pagamento aprovado. 🐾💛'), 500);
+  else if (status === 'rejected') setTimeout(() => alert('Pagamento não aprovado. Tente novamente.'), 500);
+  else if (status === 'pending') setTimeout(() => alert('Pagamento pendente. Confirmação em breve.'), 500);
 })();
 </script>
 
