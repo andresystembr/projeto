@@ -53,17 +53,12 @@ module.exports = async function handler(req, res) {
 
   try {
     if (method === 'pix') {
-      const debug = {};
-
-      // 1. Obter user ID
       const userResp = await mpRequest('GET', '/users/me', null, accessToken);
-      debug.user = { status: userResp.status, id: userResp.data.id };
       if (!userResp.data.id) {
-        return res.status(400).json({ error: 'Erro ao obter dados da conta', debug, details: userResp.data });
+        return res.status(400).json({ error: 'Erro ao obter dados da conta' });
       }
       const userId = userResp.data.id;
 
-      // 2. Criar loja ou buscar existente
       let storeId;
       const storeResp = await mpRequest('POST', '/users/' + userId + '/stores', {
         name: 'Projeto Patas Seguras',
@@ -81,7 +76,6 @@ module.exports = async function handler(req, res) {
       if (storeResp.data.id) {
         storeId = storeResp.data.id;
       } else {
-        // Loja já existe, buscar pelo external_id
         const storesListResp = await mpRequest('GET', '/users/' + userId + '/stores/search?external_id=' + STORE_EXTERNAL_ID, null, accessToken);
         if (storesListResp.data.results && storesListResp.data.results.length > 0) {
           storeId = storesListResp.data.results[0].id;
@@ -89,14 +83,11 @@ module.exports = async function handler(req, res) {
           storeId = storesListResp.data.id;
         }
       }
-      debug.store = { status: storeResp.status, id: storeId, error: storeResp.data.message };
 
       if (!storeId) {
-        return res.status(400).json({ error: 'Erro ao criar/encontrar loja', debug });
+        return res.status(400).json({ error: 'Erro ao criar loja' });
       }
 
-      // 3. Criar caixa/POS ou buscar existente
-      let posId;
       const posResp = await mpRequest('POST', '/pos', {
         name: 'Doacoes Online',
         external_id: POS_EXTERNAL_ID,
@@ -105,12 +96,6 @@ module.exports = async function handler(req, res) {
         category: 5611203
       }, accessToken);
 
-      if (posResp.data.id) {
-        posId = posResp.data.id;
-      }
-      debug.pos = { status: posResp.status, id: posId, external_id: posResp.data.external_id, error: posResp.data.message };
-
-      // 4. Criar order com QR Code dinâmico
       const qrResp = await mpRequest('PUT',
         '/instore/orders/qr/seller/collectors/' + userId + '/pos/' + POS_EXTERNAL_ID + '/qrs',
         {
@@ -126,7 +111,6 @@ module.exports = async function handler(req, res) {
             total_amount: Number(amount)
           }]
         }, accessToken);
-      debug.qr = { status: qrResp.status, data: qrResp.data };
 
       if (qrResp.data.qr_data) {
         return res.status(200).json({
@@ -136,10 +120,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      return res.status(400).json({
-        error: 'Erro ao gerar QR Code',
-        debug
-      });
+      return res.status(400).json({ error: 'Erro ao gerar QR Code' });
     }
 
     // Cartão: Checkout Pro
