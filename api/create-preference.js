@@ -1,15 +1,16 @@
 const https = require('https');
 
-function mpRequest(body, accessToken) {
+function mpRequest(path, body, accessToken) {
   const data = JSON.stringify(body);
   return new Promise((resolve, reject) => {
     const req = https.request({
       hostname: 'api.mercadopago.com',
-      path: '/checkout/preferences',
+      path,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken}`,
+        'X-Idempotency-Key': 'patas-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
         'Content-Length': Buffer.byteLength(data)
       }
     }, (res) => {
@@ -17,7 +18,7 @@ function mpRequest(body, accessToken) {
       res.on('data', chunk => body += chunk);
       res.on('end', () => {
         try { resolve(JSON.parse(body)); }
-        catch (e) { reject(new Error('Resposta inválida do Mercado Pago')); }
+        catch (e) { reject(new Error('Resposta inválida')); }
       });
     });
     req.on('error', reject);
@@ -37,38 +38,51 @@ module.exports = async function handler(req, res) {
   const accessToken = process.env.MP_ACCESS_TOKEN;
   if (!accessToken) return res.status(500).json({ error: 'MP_ACCESS_TOKEN não configurado' });
 
-  const { amount, method, name, email } = req.body;
+  const { amount, method } = req.body;
   if (!amount || amount <= 0) return res.status(400).json({ error: 'Valor inválido' });
 
-  const siteUrl = process.env.SITE_URL || req.headers.origin || 'https://projeto-patas-seguras.online';
-
-  const excludedTypes = [];
-  const excludedMethods = [];
-
-  if (method === 'pix') {
-    excludedTypes.push({ id: 'credit_card' }, { id: 'debit_card' }, { id: 'ticket' }, { id: 'atm' }, { id: 'prepaid_card' });
-  } else {
-    excludedTypes.push({ id: 'ticket' }, { id: 'atm' }, { id: 'bank_transfer' });
-    excludedMethods.push({ id: 'pix' });
-  }
-
   try {
-    const preference = await mpRequest({
+    if (method === 'pix') {
+      const payment = await mpRequest('/v1/payments', {
+        transaction_amount: Number(amount),
+        payment_method_id: 'pix',
+        description: 'Doação - Projeto Patas Seguras',
+        payer: {
+          email: 'doador@projetopatasseguras.org'
+        }
+      }, accessToken);
+
+      if (payment.id && payment.point_of_interaction) {
+        const txData = payment.point_of_interaction.transaction_data;
+        return res.status(200).json({
+          type: 'pix',
+          payment_id: payment.id,
+          qr_code: txData.qr_code,
+          qr_code_base64: txData.qr_code_base64
+        });
+      }
+
+      return res.status(400).json({
+        error: payment.message || 'Erro ao gerar Pix',
+        cause: payment.cause || undefined,
+        status: payment.status
+      });
+    }
+
+    // Cartão: Checkout Pro
+    const siteUrl = req.headers.origin || 'https://projeto-patas-seguras.online';
+    const preference = await mpRequest('/checkout/preferences', {
       items: [{
         title: 'Doação - Projeto Patas Seguras',
-        description: `Doação de R$ ${Number(amount).toFixed(2)}`,
+        description: 'Doação de R$ ' + Number(amount).toFixed(2),
         quantity: 1,
         currency_id: 'BRL',
         unit_price: Number(amount)
       }],
-      payer: {
-        name: name || 'Doador',
-        email: email || undefined
-      },
       payment_methods: {
-        excluded_payment_methods: excludedMethods,
-        excluded_payment_types: excludedTypes,
-        installments: method === 'card' ? 12 : 1
+        excluded_payment_methods: [{ id: 'pix' }],
+        excluded_payment_types: [{ id: 'ticket' }, { id: 'atm' }],
+        installments: 12
       },
       back_urls: {
         success: siteUrl + '?status=approved',
@@ -76,22 +90,14 @@ module.exports = async function handler(req, res) {
         pending: siteUrl + '?status=pending'
       },
       auto_return: 'approved',
-      statement_descriptor: 'PATAS SEGURAS',
-      external_reference: 'patas-' + method + '-' + Date.now()
+      statement_descriptor: 'PATAS SEGURAS'
     }, accessToken);
 
     if (preference.init_point) {
-      return res.status(200).json({
-        type: method,
-        init_point: preference.init_point,
-        id: preference.id
-      });
+      return res.status(200).json({ type: 'card', init_point: preference.init_point });
     }
 
-    return res.status(400).json({
-      error: preference.message || 'Erro ao criar checkout',
-      details: preference.cause || preference
-    });
+    return res.status(400).json({ error: preference.message || 'Erro ao criar checkout' });
   } catch (e) {
     return res.status(500).json({ error: 'Erro de conexão: ' + e.message });
   }
