@@ -32,8 +32,8 @@ function mpRequest(method, path, body, accessToken) {
   });
 }
 
-const STORE_EXTERNAL_ID = 'patas-seguras-online';
-const POS_EXTERNAL_ID = 'patas-seguras-pos-01';
+const STORE_EXTERNAL_ID = 'patassegurasonline01';
+const POS_EXTERNAL_ID = 'patasseguraspos01';
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -70,7 +70,9 @@ module.exports = async function handler(req, res) {
         location: {
           street_name: 'Rua Online 1',
           city_name: 'Sao Paulo',
-          state_name: 'Sao Paulo'
+          state_name: 'Sao Paulo',
+          latitude: -23.5505,
+          longitude: -46.6333
         }
       }, accessToken);
       debug.store = { status: storeResp.status, id: storeResp.data.id, error: storeResp.data.message };
